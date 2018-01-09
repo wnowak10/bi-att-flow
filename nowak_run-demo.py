@@ -15,7 +15,7 @@ demo = Demo()
 def allen():
     # What is the user ID of the person TO WHOM we are asking question?
     # This will effect document retrieval.
-    id = request.args.get('id', default = 7606, type = int)
+    respondent_id = request.args.get('id', default = 7606, type = int)
     # We will need to use a document retreiver to get this document.
     paragraph = "A chatbot (also known as a talkbot, chatterbot, Bot, IM bot, interactive agent, or Artificial Conversational Entity) is a computer program which conducts a conversation via auditory or textual methods.[1] Such programs are often designed to convincingly simulate how a human would behave as a conversational partner, thereby passing the Turing test. Chatbots are typically used in dialog systems for various practical purposes including customer service or information acquisition. Some chatterbots use sophisticated natural language processing systems, but many simpler systems scan for keywords within the input, then pull a reply with the most matching keywords, or the most similar wording pattern, from a database."
     # User submits questoin in API GET call.
