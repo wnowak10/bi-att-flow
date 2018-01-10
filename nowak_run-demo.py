@@ -35,7 +35,7 @@ def allen():
 
 
     # User submits questoin in API GET call.
-    query = request.args.get('query', default = "When people discuss startups, what do they tend to talk about?", type = str) 
+    query = request.args.get('query', default = "What is SocialCam?", type = str) 
     answers = {}
     for i, paragraph in enumerate(molly_texts):
         answers[id_dict[i]] = getAnswer(paragraph, query)

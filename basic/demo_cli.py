@@ -59,7 +59,8 @@ flags.DEFINE_bool("single", False, "supervise only the answer sentence? [False]"
 
 flags.DEFINE_integer("word_count_th", 30, "word count th [100]")
 flags.DEFINE_integer("char_count_th", 150, "char count th [500]")
-flags.DEFINE_integer("sent_size_th", 1000, "sent size th [64]")
+# Need to change this to handle work limits.
+flags.DEFINE_integer("sent_size_th", 5000, "sent size th [64]")
 flags.DEFINE_integer("num_sents_th", 1000, "num sents th [8]")
 flags.DEFINE_integer("ques_size_th", 100, "ques size th [32]")
 flags.DEFINE_integer("word_size_th", 48, "word size th [16]")
