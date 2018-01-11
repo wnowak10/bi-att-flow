@@ -20,29 +20,56 @@ def allen():
 
     # We will need to use a document retreiver to get this document.
     # At the moment, just reading from these blog posts.
-    dox = "https://molly.com/q?q=how%20should%20we%20decide%20which%20features%20to%20build?&id=7606"
+    dox = "https://molly.com/q?q=how%20should%20we%20decide%20which%20features%20to%20build?&id="+str(respondent_id)
     with urllib.request.urlopen(dox) as url:
             molly_data = json.loads(url.read().decode())
 
-    # Fill texts, create id dictionary to map each text to its Molly ID
+    # # Fill texts, create id dictionary to map each text to its Molly ID
+    # molly_texts = []
+    # molly_ids = []
+    # id_dict= {}
+    # for i, post in enumerate(molly_data['blog']):
+    #     molly_ids.append(i)
+    #     id_dict[i] = str(molly_data['blog'][i]['id'])
+    #     molly_texts.append(post.get('content'))
+    query = request.args.get('query', default = "What is SocialCam?", type = str) 
+
     molly_texts = []
     molly_ids = []
-    id_dict= {}
-    for i, post in enumerate(molly_data['blog']):
-        molly_ids.append(i)
-        id_dict[i] = str(molly_data['blog'][i]['id'])
-        molly_texts.append(post.get('content'))
+    ids_list = []
+    for data_source in molly_data:
+        if data_source == 'blog':
+            for i, post in enumerate(molly_data[data_source], start = 0):
+                molly_data[data_source][i]['span'] = getAnswer(post.get('content'), query)
+                # molly_data[data_source][i]['span'] = getAnswer(post.get('content'), query)
+                # molly_texts.append(post.get('content'))
+                # molly_ids.append(post['id'])
+                # ids_list.append(str(molly_data[data_source][i]['id']))
+        elif data_source == 'answer':
+            for j, response in enumerate(molly_data[data_source]):
+                molly_data[data_source][j]['span'] = getAnswer(response.get('comments'), query)
+
+    #             molly_texts.append(response.get('comments'))
+    #             ids_list.append(str(molly_data[data_source][j]['id']))
+        elif data_source == 'twitter':
+            for k, tweet in enumerate(molly_data[data_source]):
+                molly_data[data_source][k]['span'] = getAnswer(tweet.get('text'), query)
+
+    #             molly_texts.append(tweet.get('text'))
+    #             ids_list.append(str(molly_data[data_source][k]['id']))
+    # # User submits questoin in API GET call.
+    # query = request.args.get('query', default = "What is SocialCam?", type = str) 
 
 
-    # User submits questoin in API GET call.
-    query = request.args.get('query', default = "What is SocialCam?", type = str) 
-    answers = {}
-    for i, paragraph in enumerate(molly_texts):
-        answers[id_dict[i]] = getAnswer(paragraph, query)
+    # answers = {}
+    # for i, paragraph in enumerate(molly_texts):
+    #     answers[ids_list[i]] = getAnswer(paragraph, query)
     # Create empty dictionary to place answer into.
     # d = {}
     # d['span'] = answer # Call the answer span:
-    return jsonify(answers)
+    # return jsonify(answers)
+    molly_data['Q'] = query
+    return jsonify(molly_data)
 
 def getAnswer(paragraph, question):
     pq_prepro = prepro(paragraph, question)
