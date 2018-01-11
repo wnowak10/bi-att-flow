@@ -3,6 +3,7 @@ from squad.demo_prepro import prepro
 from basic.demo_cli import Demo
 import json
 from flask_cors import CORS
+import urllib
 
 app = Flask(__name__)
 CORS(app)
@@ -15,20 +16,64 @@ demo = Demo()
 def allen():
     # What is the user ID of the person TO WHOM we are asking question?
     # This will effect document retrieval.
-    id = request.args.get('id', default = 7606, type = int)
+    respondent_id = request.args.get('id', default = 7606, type = int)
+
     # We will need to use a document retreiver to get this document.
-    paragraph = "A chatbot (also known as a talkbot, chatterbot, Bot, IM bot, interactive agent, or Artificial Conversational Entity) is a computer program which conducts a conversation via auditory or textual methods.[1] Such programs are often designed to convincingly simulate how a human would behave as a conversational partner, thereby passing the Turing test. Chatbots are typically used in dialog systems for various practical purposes including customer service or information acquisition. Some chatterbots use sophisticated natural language processing systems, but many simpler systems scan for keywords within the input, then pull a reply with the most matching keywords, or the most similar wording pattern, from a database."
-    # User submits questoin in API GET call.
-    query = request.args.get('query', default = "What is a chatbot?", type = str)  
-    answer = getAnswer(paragraph, query)
+    # At the moment, just reading from these blog posts.
+    dox = "https://molly.com/q?q=how%20should%20we%20decide%20which%20features%20to%20build?&id="+str(respondent_id)
+    with urllib.request.urlopen(dox) as url:
+            molly_data = json.loads(url.read().decode())
+
+    # # Fill texts, create id dictionary to map each text to its Molly ID
+    # molly_texts = []
+    # molly_ids = []
+    # id_dict= {}
+    # for i, post in enumerate(molly_data['blog']):
+    #     molly_ids.append(i)
+    #     id_dict[i] = str(molly_data['blog'][i]['id'])
+    #     molly_texts.append(post.get('content'))
+    query = request.args.get('query', default = "What is SocialCam?", type = str) 
+
+    molly_texts = []
+    molly_ids = []
+    ids_list = []
+    for data_source in molly_data:
+        if data_source == 'blog':
+            for i, post in enumerate(molly_data[data_source], start = 0):
+                molly_data[data_source][i]['span'] = getAnswer(post.get('content'), query)
+                # molly_data[data_source][i]['span'] = getAnswer(post.get('content'), query)
+                # molly_texts.append(post.get('content'))
+                # molly_ids.append(post['id'])
+                # ids_list.append(str(molly_data[data_source][i]['id']))
+        elif data_source == 'answer':
+            for j, response in enumerate(molly_data[data_source]):
+                molly_data[data_source][j]['span'] = getAnswer(response.get('comments'), query)
+
+    #             molly_texts.append(response.get('comments'))
+    #             ids_list.append(str(molly_data[data_source][j]['id']))
+        elif data_source == 'twitter':
+            for k, tweet in enumerate(molly_data[data_source]):
+                molly_data[data_source][k]['span'] = getAnswer(tweet.get('text'), query)
+
+    #             molly_texts.append(tweet.get('text'))
+    #             ids_list.append(str(molly_data[data_source][k]['id']))
+    # # User submits questoin in API GET call.
+    # query = request.args.get('query', default = "What is SocialCam?", type = str) 
+
+
+    # answers = {}
+    # for i, paragraph in enumerate(molly_texts):
+    #     answers[ids_list[i]] = getAnswer(paragraph, query)
     # Create empty dictionary to place answer into.
-    d = {}
-    d['span'] = answer # Call the answer span:
-    return jsonify(d)
+    # d = {}
+    # d['span'] = answer # Call the answer span:
+    # return jsonify(answers)
+    molly_data['Q'] = query
+    return jsonify(molly_data)
 
 def getAnswer(paragraph, question):
     pq_prepro = prepro(paragraph, question)
-    print(pq_prepro)
+    # print(pq_prepro)
     if len(pq_prepro['x'])>1000:
         return "[Error] Sorry, the number of words in paragraph cannot be more than 1000." 
     if len(pq_prepro['q'])>100:

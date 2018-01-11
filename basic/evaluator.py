@@ -364,10 +364,21 @@ class ForwardEvaluator(Evaluator):
         idxs, data_set = batch
         assert isinstance(data_set, DataSet)
         feed_dict = self.model.get_feed_dict(data_set, False)
+        print(batch)
         global_step, yp, yp2, loss, vals = sess.run([self.global_step, self.yp, self.yp2, self.loss, list(self.tensor_dict.values())], feed_dict=feed_dict)
 
         yp, yp2 = yp[:data_set.num_examples], yp2[:data_set.num_examples]
+        print('yp')
+        print(yp)
+        print(yp2)
+        print('len of y2')
+        print(len(yp2[0][0]))
+        # these are some scores for indices
         spans, scores = zip(*[get_best_span(ypi, yp2i) for ypi, yp2i in zip(yp, yp2)])
+        # they we find the span with the best score searching over all spans
+        print('spans')
+        print(spans) 
+        print(scores)
 
         def _get(xi, span):
             if len(xi) <= span[0][0]:
@@ -384,6 +395,8 @@ class ForwardEvaluator(Evaluator):
             return get_phrase(context, xi, span)
         id2answer_dict = {id_: _get2(context, xi, span)
                           for id_, xi, span, context in zip(data_set.data['ids'], data_set.data['x'], spans, data_set.data['p'])}
+        print('_get2')
+        print(id2answer_dict)
         id2score_dict = {id_: score for id_, score in zip(data_set.data['ids'], scores)}
         id2answer_dict['scores'] = id2score_dict
         tensor_dict = dict(zip(self.tensor_dict.keys(), vals))
