@@ -4,6 +4,7 @@ from basic.demo_cli import Demo
 import json
 from flask_cors import CORS
 import urllib
+from urllib.parse import quote
 
 app = Flask(__name__)
 CORS(app)
@@ -20,8 +21,11 @@ def allen():
 
     # We will need to use a document retreiver to get this document.
     # At the moment, just reading from these blog posts.
-    dox = "https://molly.com/q?q=how%20should%20we%20decide%20which%20features%20to%20build?&id="+str(respondent_id)
-    with urllib.request.urlopen(dox) as url:
+    # dox = "https://molly.com/q?q=how%20should%20we%20decide%20which%20features%20to%20build?&id="+str(respondent_id)
+    query = request.args.get('query', default = "What is SocialCam?", type = str) 
+
+    doc_url = "https://molly.com/q?q="+quote(query,safe = '')+"&id="+str(respondent_id)
+    with urllib.request.urlopen(doc_url) as url:
             molly_data = json.loads(url.read().decode())
 
     # # Fill texts, create id dictionary to map each text to its Molly ID
@@ -32,7 +36,6 @@ def allen():
     #     molly_ids.append(i)
     #     id_dict[i] = str(molly_data['blog'][i]['id'])
     #     molly_texts.append(post.get('content'))
-    query = request.args.get('query', default = "What is SocialCam?", type = str) 
 
     molly_texts = []
     molly_ids = []
@@ -68,7 +71,7 @@ def allen():
     # d = {}
     # d['span'] = answer # Call the answer span:
     # return jsonify(answers)
-    molly_data['Q'] = query
+#    molly_data['Q'] = query
     return jsonify(molly_data)
 
 def getAnswer(paragraph, question):
@@ -83,3 +86,4 @@ def getAnswer(paragraph, question):
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=1995, threaded=True)
+
